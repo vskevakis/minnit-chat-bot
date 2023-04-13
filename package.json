@@ -1,0 +1,23 @@
+{
+  "name": "minnit-chat-bot",
+  "version": "1.0.0",
+  "description": "A dummy chat bot build for minnit chats",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node src/index.js",
+    "run" : "node src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vskevakis/minnit-chat-bot.git"
+  },
+  "author": "vskevakis",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/vskevakis/minnit-chat-bot/issues"
+  },
+  "homepage": "https://github.com/vskevakis/minnit-chat-bot#readme",
+  "dependencies": {
+    "puppeteer": "^19.8.5"
+  }
+}
