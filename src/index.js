@@ -1,4 +1,6 @@
-const puppeteerUtils = require('./utils/puppeteerUtils.js');
+const puppeteerUtils = require('./utils/puppeteerUtils');
+const handlers = require('./handlers');
+require('dotenv').config();
 
 (async () => {
   const url = process.env.MINNIT_URL;
@@ -9,31 +11,25 @@ const puppeteerUtils = require('./utils/puppeteerUtils.js');
   const page = await browser.newPage();
   const chat_frame = await puppeteerUtils.login(page, url, username, password);
 
-  let lastMessageCount = 0;
-
-  setInterval(async () => {
+  while (true) {
     const lastMessage = await puppeteerUtils.read_last_message(chat_frame);
 
-    if (lastMessage !== null) {
-      switch (true) {
-        case lastMessage.text.startsWith("/hey"):
-          const text = lastMessage.text.substring(4).trim();
-          console.log(`Received /hey message with text: ${text}`);
-          await puppeteerUtils.send_message(chat_frame, 'hey you too');
-          break;
-        case lastMessage.text.startsWith("/command1"):
-          // Handle command1
-          break;
-        case lastMessage.text.startsWith("/command2"):
-          // Handle command2
-          break;
-        // Add more cases for other commands as needed
-        default:
-          // Handle other messages
-          break;
+    if (lastMessage !== null && lastMessage.text.startsWith("/")) {
+      const command = lastMessage.text.split(" ")[0].substring(1);
+      console.log("Command: " + command);
+      const handler = handlers[command];
+
+      if (handler) {
+        console.log("Calling Handler: " + handler);
+        await handler(chat_frame, puppeteerUtils, lastMessage);
+      } else {
+        console.log(`Unknown command: ${command}`);
       }
     }
-  }, 500); // Check for new messages every 0.5 seconds
+
+    // Wait for 1 second before checking for new messages again
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
 
   // This promise keeps the program running until you close the browser
   await new Promise(() => {});

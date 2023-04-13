@@ -92,88 +92,103 @@ const login = async (page, url, username, password) => {
 const send_message = async (frame, message) => {
     try {
         // Locate the #msgArea and find the textbox inside it
-        const msgArea = await frame.$('#msgArea');
-        const textbox = await msgArea.$('#textbox');
-    
+        const msgArea = await frame.$("#msgArea");
+        const textbox = await msgArea.$("#textbox");
+
         // Check if the textbox was found
         if (!textbox) {
             console.error("The textbox was not found inside the #msgArea");
             return;
         }
-    
+
         // Clear any existing text in the textbox
-        await textbox.evaluate((el) => (el.innerHTML = ''));
-    
+        await textbox.evaluate((el) => (el.innerHTML = ""));
+
         // Type the message you want to send
         await textbox.type(message);
-    
+
         // Click the send button with the ID 'sendbtn'
-        const sendBtn = await frame.$('#sendbtn');
+        const sendBtn = await frame.$("#sendbtn");
         await sendBtn.click();
     } catch (error) {
-        console.error('An error occurred while sending the message:', error);
+        console.error("An error occurred while sending the message:", error);
     }
 };
 
 const read_messages = async (frame) => {
     // Define an array to store the messages
     const messages = [];
-  
+
     // Get all the .msg elements from the chat window
-    const msgElements = await frame.$$('.msg');
-  
+    const msgElements = await frame.$$(".msg");
+
     // Iterate through the .msg elements and extract the required information
     for (const msgElement of msgElements) {
-      // Extract the sender's name
-    //   const msgName = await msgElement.$eval('.msgName', (el) => el.textContent);
-        const msgName = await msgElement.$eval('.msgName .msgNick', (el) => el.textContent);
-  
-      // Extract the message text
-      const msgText = await msgElement.$eval('.msgTextOnly', (el) => el.textContent);
-  
-      // Extract the rank
-      const rankHex = await msgElement.$eval('.rankCustom circle', (el) => el.getAttribute('fill'));
-  
-      // Create an object with the extracted information and add it to the messages array
-      messages.push({
-        sender: msgName,
-        text: msgText,
-        rank: rankHex,
-      });
+        // Extract the sender's name
+        //   const msgName = await msgElement.$eval('.msgName', (el) => el.textContent);
+        const msgName = await msgElement.$eval(
+            ".msgName .msgNick",
+            (el) => el.textContent
+        );
+
+        // Extract the message text
+        const msgText = await msgElement.$eval(
+            ".msgTextOnly",
+            (el) => el.textContent
+        );
+
+        // Extract the rank
+        const rankHex = await msgElement.$eval(".rankCustom circle", (el) =>
+            el.getAttribute("fill")
+        );
+
+        // Create an object with the extracted information and add it to the messages array
+        messages.push({
+            username: msgName,
+            text: msgText,
+            rank: rankHex,
+        });
     }
-  
+
     return messages;
 };
 
 const read_last_message = async (frame) => {
     // Get all the .msg elements from the chat window
-    const msgElements = await frame.$$('.msg');
-  
+    const msgElements = await frame.$$(".msg");
+
     // If there are no messages, return null
     if (msgElements.length === 0) {
-      return null;
+        return null;
     }
-  
+
     // Get the last .msg element
     const lastMsgElement = msgElements[msgElements.length - 1];
-  
+
     // Extract the sender's name
-    const msgName = await lastMsgElement.$eval('.msgName .msgNick', (el) => el.textContent);
-  
+    const msgName = await lastMsgElement.$eval(
+        ".msgName .msgNick",
+        (el) => el.textContent
+    );
+
     // Extract the message text
-    const msgText = await lastMsgElement.$eval('.msgTextOnly', (el) => el.textContent);
-  
+    const msgText = await lastMsgElement.$eval(
+        ".msgTextOnly",
+        (el) => el.textContent
+    );
+
     // Extract the rank
-    const rankHex = await lastMsgElement.$eval('.rankCustom circle', (el) => el.getAttribute('fill'));
-  
+    const rankHex = await lastMsgElement.$eval(".rankCustom circle", (el) =>
+        el.getAttribute("fill")
+    );
+
     // Create an object with the extracted information and return it
     return {
-      sender: msgName,
-      text: msgText,
-      rank: rankHex,
+        username: msgName,
+        text: msgText,
+        rank: rankHex,
     };
-  };
-  
+};
 
 module.exports = {
     generateBrowser,
@@ -181,5 +196,5 @@ module.exports = {
     login,
     send_message,
     read_messages,
-    read_last_message
+    read_last_message,
 };

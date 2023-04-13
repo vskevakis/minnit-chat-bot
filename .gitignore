@@ -3,4 +3,5 @@
 script.js
 html-parse.html
 package-lock.json
+.env
 ```
