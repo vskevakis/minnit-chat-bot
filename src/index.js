@@ -1,4 +1,10 @@
 const puppeteerUtils = require('./utils/puppeteerUtils');
+const {
+  processPrivateMessages,
+  activate,
+  deactivate,
+} = require('./utils/processPrivateMessages');
+
 const handlers = require('./handlers');
 require('dotenv').config();
 
@@ -10,6 +16,8 @@ require('dotenv').config();
   const browser = await puppeteerUtils.generateBrowser();
   const page = await browser.newPage();
   const chat_frame = await puppeteerUtils.login(page, url, username, password);
+
+  processPrivateMessages(chat_frame, puppeteerUtils).catch(console.error);
 
   while (true) {
     const lastMessage = await puppeteerUtils.read_last_message(chat_frame);

@@ -115,34 +115,45 @@ const send_message = async (frame, message) => {
     }
 };
 
-const read_messages = async (frame) => {
+async function processPrivateMessages(chat_frame, puppeteerUtils) {
+    while (true) {
+        try {
+            const chatDms = await chat_frame.$('#chat-dms');
+            const hasDm = await chatDms.evaluate(el => el.innerHTML.trim() !== '');
+
+            if (hasDm) {
+                const lastMsgText = await chat_frame.$eval('#chat-dms #convoBoxSelector #convoText .lastMsgText', el => el.innerText);
+                await puppeteerUtils.send_message(chat_frame, lastMsgText);
+
+                // Clear the private message content
+                await chatDms.evaluate(el => el.innerHTML = '');
+            }
+        } catch (error) {
+            console.error('Error processing private messages:', error);
+        }
+
+        // Wait for a short interval before checking again
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+}
+
+
+const read_messages = async (frame, n = 0) => {
     // Define an array to store the messages
     const messages = [];
 
     // Get all the .msg elements from the chat window
-    const msgElements = await frame.$$(".msg");
+    const msgElements = await frame.$$('.msg');
+
+    // If n is provided, slice the msgElements array to get the last n messages
+    const elements = n > 0 ? msgElements.slice(-n) : msgElements;
 
     // Iterate through the .msg elements and extract the required information
-    for (const msgElement of msgElements) {
-        // Extract the sender's name
-        //   const msgName = await msgElement.$eval('.msgName', (el) => el.textContent);
-        const msgName = await msgElement.$eval(
-            ".msgName .msgNick",
-            (el) => el.textContent
-        );
+    for (const msgElement of elements) {
+        const msgName = await msgElement.$eval('.msgName .msgNick', (el) => el.textContent);
+        const msgText = await msgElement.$eval('.msgTextOnly', (el) => el.textContent);
+        const rankHex = await msgElement.$eval('.rankCustom circle', (el) => el.getAttribute('fill'));
 
-        // Extract the message text
-        const msgText = await msgElement.$eval(
-            ".msgTextOnly",
-            (el) => el.textContent
-        );
-
-        // Extract the rank
-        const rankHex = await msgElement.$eval(".rankCustom circle", (el) =>
-            el.getAttribute("fill")
-        );
-
-        // Create an object with the extracted information and add it to the messages array
         messages.push({
             username: msgName,
             text: msgText,
@@ -152,6 +163,7 @@ const read_messages = async (frame) => {
 
     return messages;
 };
+
 
 const read_last_message = async (frame) => {
     // Get all the .msg elements from the chat window
